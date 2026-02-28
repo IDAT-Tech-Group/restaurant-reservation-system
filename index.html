@@ -1,12 +1,61 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" class="scroll-smooth">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sistema de Reservas</title>
+    <title>ReservaFácil</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+            colors: {
+              bg:          '#DFE8F5',
+              surface:     '#FFFFFF',
+              gold:        { DEFAULT: '#F5C800', dark: '#D9AF00' },
+              ink:         { DEFAULT: '#23262F', soft: '#5A6075', ghost: '#9AA0B3' },
+              'border-col':'#E2E8F4',
+              'dark-bg':       '#0F1117',
+              'dark-surface':  '#1A1D27',
+              'dark-surface2': '#2D3250',
+              'dark-border':   '#2A2E3F',
+            },
+            borderRadius: { pill: '999px', xl2: '24px' },
+            boxShadow: {
+              sm2: '0 2px 8px rgba(30,40,80,.07)',
+              md2: '0 6px 24px rgba(30,40,80,.10)',
+              lg2: '0 20px 60px rgba(30,40,80,.18)',
+            },
+          },
+        },
+      }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   </head>
   <body>
+    <!-- Restaura la ruta real desde el redirect de 404.html (GitHub Pages SPA) -->
+    <script>
+      ;(function (l) {
+        if (l.search[1] === 'p') {
+          var params = l.search.slice(1).split('&').reduce(function (q, s) {
+            var kv = s.split('=')
+            q[kv[0]] = kv.slice(1).join('=').replace(/~and~/g, '&')
+            return q
+          }, {})
+          if (params.p !== undefined) {
+            var base = l.pathname.replace(/\/$/, '')
+            window.history.replaceState(
+              null, null,
+              base + '/' + params.p + (params.q ? '?' + params.q : '') + l.hash
+            )
+          }
+        }
+      }(window.location))
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

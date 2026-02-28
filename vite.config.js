@@ -1,8 +1,7 @@
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import react from '@vitejs/plugin-react-swc'
 
-// https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [react()],
-  base: '/restaurant-reservation-system/',
-})
+  base: command === 'build' ? '/restaurant-reservation-system/' : '/',
+}))
