@@ -1,6 +1,0 @@
-/* Estilos específicos de App.jsx u otras partes core */
-.app-container {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
