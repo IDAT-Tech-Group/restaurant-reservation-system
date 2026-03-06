@@ -1,11 +1,14 @@
 import { useNavigate } from 'react-router-dom'
+import { useContext } from 'react'
 import { useDarkMode } from '../../hooks/useDarkMode.jsx'
+import { AuthContext } from '../../context/AuthContext.jsx'
 
 const ROUTE_LANDING = '/'
 
 export default function Topbar() {
   const { isDark, toggle } = useDarkMode()
   const navigate = useNavigate()
+  const { user, logout } = useContext(AuthContext)
 
   return (
     <header className="sticky py-4 top-0 z-50 h-17 flex items-center justify-between px-10 bg-surface dark:bg-dark-surface border-b border-border-col dark:border-dark-border">
@@ -27,7 +30,20 @@ export default function Topbar() {
         >
           {isDark ? '☀️' : '🌙'}
         </button>
-        <div className="w-10 h-10 rounded-full bg-ink dark:bg-dark-surface2 text-white flex items-center justify-center font-black text-sm cursor-pointer">A</div>
+        <div className="flex items-center gap-2 ml-2">
+          {user && (
+            <span className="text-sm font-medium text-ink dark:text-white hidden md:block">
+              {user.name}
+            </span>
+          )}
+          <button 
+            onClick={logout}
+            title="Cerrar sesión"
+            className="w-10 h-10 rounded-full bg-ink dark:bg-dark-surface2 text-white flex items-center justify-center font-black text-sm cursor-pointer hover:bg-red-500 transition-colors"
+          >
+            {user?.avatar || 'A'}
+          </button>
+        </div>
       </div>
     </header>
   )
