@@ -19,6 +19,9 @@ export default function LandingNavbar() {
       </ul>
 
       <div className="flex items-center gap-3">
+        <a href="/login" className="text-sm font-semibold text-ink-soft dark:text-ink-ghost hover:text-ink dark:hover:text-white transition-colors no-underline hidden md:block">
+          Acceso Admin
+        </a>
         <Button as="a" variant="gold" size="sm" href="#reservar">
           🗓️ Reservar mesa
         </Button>
