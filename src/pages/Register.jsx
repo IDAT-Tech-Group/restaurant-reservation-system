@@ -1,9 +1,14 @@
 import { useState } from "react"
 import { Link } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
+import { useAuth } from "../context/AuthContext"
 import Button from "../components/ui/Button.jsx"
 import FormField from "../components/ui/FormField.jsx"
 
 export default function Register() {
+
+  const { register } = useAuth()
+  const navigate = useNavigate()
 
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
@@ -19,10 +24,15 @@ export default function Register() {
       return
     }
 
-    setError("")
-    console.log({ name, email, phone, password })
+    const result = register(name, email, phone, password)
 
-    alert("Cuenta creada (simulación frontend)")
+    if (result?.error) {
+      setError(result.error)
+      return
+    }
+
+    setError("")
+    navigate("/")
   }
 
   return (

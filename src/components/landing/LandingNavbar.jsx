@@ -1,5 +1,6 @@
 import Button from '../ui/Button.jsx'
 import { useAuth } from "../../context/AuthContext"
+import { Link } from 'react-router-dom'
 
 export default function LandingNavbar() {
 
@@ -25,11 +26,11 @@ export default function LandingNavbar() {
       <div className="flex items-center gap-3">
 
         {!user && (
-          <a href="/login">
+          <Link to="/login">
             <Button variant="outline" size="sm">
               Iniciar sesión
             </Button>
-          </a>
+          </Link>
         )}
 
         {user && (
