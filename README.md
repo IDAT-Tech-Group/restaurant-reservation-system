@@ -1,16 +1,59 @@
-# React + Vite
+# Restaurant Reservation System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Descripción
 
-Currently, two official plugins are available:
+Restaurant Reservation System es una aplicación web desarrollada con **React** que permite a los usuarios registrarse, iniciar sesión y realizar reservas de mesas en un restaurante.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+El sistema implementa un flujo de autenticación para garantizar que solo los usuarios registrados puedan realizar reservas. De esta manera, cada reserva queda asociada a un usuario específico, permitiendo llevar un control adecuado de las reservas realizadas.
 
-## React Compiler
+El flujo principal del sistema es el siguiente:
 
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
+1. Registro de usuario
+2. Inicio de sesión (Login)
+3. Acceso al dashboard
+4. Visualización de mesas disponibles
+5. Selección de mesa
+6. Confirmación de reserva mediante un pop-up
 
-## Expanding the ESLint configuration
+Además, el sistema incluye una validación que impide realizar reservas si el usuario no ha iniciado sesión.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## Aplicación publicada
+
+La aplicación puede probarse directamente desde el siguiente enlace:
+
+https://idat-tech-group.github.io/restaurant-reservation-system
+
+---
+
+## Tecnologías utilizadas
+
+- React
+- JavaScript
+- HTML5
+- CSS3
+- Node.js
+- Vite
+
+---
+
+## Configuración del entorno de desarrollo
+
+Para ejecutar el proyecto de forma local, seguir los siguientes pasos.
+
+### 1. Clonar el repositorio
+
+git clone https://github.com/idat-tech-group/restaurant-reservation-system.git
+
+## Ingresar a la carpeta del proyecto
+
+cd restaurant-reservation-system
+
+## Instalar las dependencias
+
+npm install
+
+## Ejecutar la aplicación
+
+npm run dev
