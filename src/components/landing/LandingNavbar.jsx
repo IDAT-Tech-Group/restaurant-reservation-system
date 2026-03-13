@@ -8,17 +8,17 @@ export default function LandingNavbar() {
 
   return (
     <nav className="fixed py-4 top-0 left-0 right-0 z-50 h-17 flex items-center justify-between px-10 bg-white/80 dark:bg-dark-surface/80 backdrop-blur-lg border-b border-border-col dark:border-dark-border">
-      <a href="#" className="flex items-center gap-2.5 font-black text-xl text-ink dark:text-white no-underline tracking-tight">
+      <Link to="/" className="flex items-center gap-2.5 font-black text-xl text-ink dark:text-white no-underline tracking-tight">
         <div className="w-10 h-10 bg-gold rounded-xl flex items-center justify-center text-xl">🍽️</div>
         La Bella Tavola
-      </a>
+      </Link>
 
       <ul className="hidden md:flex items-center gap-8 list-none m-0 p-0">
         {[['nosotros', 'Nosotros'], ['menu', 'Menú'], ['horarios', 'Horarios']].map(([id, label]) => (
           <li key={id}>
-            <a href={`#${id}`} className="text-sm font-semibold text-ink-soft dark:text-ink-ghost hover:text-ink dark:hover:text-white transition-colors no-underline">
+            <Link to={`/#${id}`} className="text-sm font-semibold text-ink-soft dark:text-ink-ghost hover:text-ink dark:hover:text-white transition-colors no-underline">
               {label}
-            </a>
+            </Link>
           </li>
         ))}
       </ul>
@@ -34,14 +34,23 @@ export default function LandingNavbar() {
         )}
 
         {user && (
-          <Button variant="outline" size="sm" onClick={logout}>
-            Cerrar sesión
-          </Button>
+          <>
+            <Link to="/my-reservations">
+              <Button variant="outline" size="sm" className="mr-2">
+                📅 Mis reservas
+              </Button>
+            </Link>
+            <Button variant="outline" size="sm" onClick={logout}>
+              Cerrar sesión
+            </Button>
+          </>
         )}
 
-        <Button as="a" variant="gold" size="sm" href="#reservar">
-          🗓️ Reservar mesa
-        </Button>
+        <Link to="/#reservar">
+          <Button variant="gold" size="sm">
+            🗓️ Reservar mesa
+          </Button>
+        </Link>
 
       </div>
     </nav>

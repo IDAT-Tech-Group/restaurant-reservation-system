@@ -13,13 +13,12 @@ export default function ReservationSection() {
   const [formKey,     setFormKey]     = useState(0)
 
   const handleSubmit = useCallback((formData) => {
-    if (!timeSlot.selected) return { error: 'Por favor selecciona un horario' }
+    if (!timeSlot.startTime) return { error: 'Por favor selecciona un horario' }
 
     const reservation = {
       ...formData,
       persons: personCount.count,
-      time:    timeSlot.selected,
-      table:   'auto',
+      startTime: timeSlot.startTime,
     }
 
     addReservation(reservation)

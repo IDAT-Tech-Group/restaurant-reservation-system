@@ -4,7 +4,7 @@ import Badge from '../../ui/Badge.jsx'
 import FormField from '../../ui/FormField.jsx'
 import NewReservationModal from '../NewReservationModal.jsx'
 import { useReservations } from '../../../context/ReservationsContext.jsx'
-import { STATUS_LABEL } from '../../../constants/reservations.js'
+import { ZONES } from '../../../constants/reservations.js'
 
 const formatDate = (isoDate) => {
   const [y, m, d] = isoDate.split('-')
@@ -12,18 +12,27 @@ const formatDate = (isoDate) => {
 }
 
 export default function ReservationsView() {
-  const { reservations, releaseTable } = useReservations()
+  const { reservations, releaseTable, updateReservationStatus } = useReservations()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [searchTerm,  setSearchTerm]  = useState('')
   const [dateFilter,  setDateFilter]  = useState('')
 
   const filtered = useMemo(() =>
     reservations.filter(r => {
-      const matchSearch = r.name.toLowerCase().includes(searchTerm.toLowerCase()) || r.phone.includes(searchTerm)
+      const matchSearch = (r.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (r.phone || '').includes(searchTerm)
       const matchDate   = !dateFilter || r.date === dateFilter
       return matchSearch && matchDate
     })
   , [reservations, searchTerm, dateFilter])
+
+  const renderStatus = (status) => {
+    switch (status) {
+      case 'pendiente': return <Badge variant="orange">⏳ Pendiente</Badge>
+      case 'reservado': return <Badge variant="blue">🔒 Reservado</Badge>
+      case 'completado': return <Badge variant="green">✅ Completado</Badge>
+      default: return <Badge variant="gray">{status}</Badge>
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -64,7 +73,7 @@ export default function ReservationsView() {
           <table className="w-full border-collapse">
             <thead className="border-b border-border-col dark:border-dark-border">
               <tr>
-                {['#', 'Cliente', 'Teléfono', 'Fecha', 'Hora', 'Pers.', 'Mesa', 'Estado', 'Acciones'].map(h => (
+                {['#', 'Cliente', 'Teléfono', 'Fecha', 'Hora', 'Pers.', 'Zona', 'Mesa', 'Estado', 'Acciones'].map(h => (
                   <th key={h} className="px-5 py-4 text-left text-[11px] font-black uppercase tracking-widest text-ink-ghost">{h}</th>
                 ))}
               </tr>
@@ -83,17 +92,25 @@ export default function ReservationsView() {
                     <td className="px-5 py-4 text-sm font-semibold text-ink dark:text-white">{r.name}</td>
                     <td className="px-5 py-4 text-sm text-ink-soft dark:text-ink-ghost">{r.phone}</td>
                     <td className="px-5 py-4 text-sm text-ink-soft dark:text-ink-ghost">{formatDate(r.date)}</td>
-                    <td className="px-5 py-4 text-sm text-ink-soft dark:text-ink-ghost">{r.time}</td>
+                    <td className="px-5 py-4 text-sm text-ink-soft dark:text-ink-ghost">{r.startTime} - {r.endTime}</td>
                     <td className="px-5 py-4 text-sm text-ink dark:text-white">{r.persons}</td>
+                    <td className="px-5 py-4 text-xs font-bold text-ink-soft dark:text-ink-ghost uppercase">
+                      {ZONES.find(z => z.id === r.zone)?.name || 'General'}
+                    </td>
                     <td className="px-5 py-4 text-sm font-bold text-ink dark:text-white">
                       {r.table === 'auto' ? 'Auto' : `Mesa ${r.table}`}
                     </td>
                     <td className="px-5 py-4">
-                      <Badge variant="green">{STATUS_LABEL}</Badge>
+                      {renderStatus(r.status)}
                     </td>
                     <td className="px-5 py-4">
+                      {r.status === 'pendiente' && (
+                        <Button variant="outline" size="sm" className="text-xs mr-2 mb-2 lg:mb-0" onClick={() => updateReservationStatus(r.id, 'reservado')}>
+                          Confirmar Pago
+                        </Button>
+                      )}
                       <Button variant="danger" size="sm" className="text-xs" onClick={() => releaseTable(r.id)}>
-                        Liberar mesa
+                        Eliminar
                       </Button>
                     </td>
                   </tr>

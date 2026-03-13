@@ -23,7 +23,11 @@ export default function Login() {
       return
     }
 
-    navigate("/")
+    if (email.toLowerCase() === "admin@gmail.com") {
+      navigate("/dashboard")
+    } else {
+      navigate("/")
+    }
   }
 
   return (

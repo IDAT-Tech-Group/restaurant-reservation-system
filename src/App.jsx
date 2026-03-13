@@ -13,6 +13,7 @@ import Landing from './pages/Landing.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Login from './pages/Login.jsx'
 import Register from "./pages/Register.jsx"
+import MyReservations from './pages/MyReservations.jsx'
 import { adminDashboardLoader } from './loaders/adminDashboardLoader.js'
 
 export default function App() {
@@ -25,6 +26,7 @@ export default function App() {
           <>
             <Route path="/" element={<LandingLayout />}>
               <Route index element={<Landing />} />
+              <Route path="my-reservations" element={<MyReservations />} />
             </Route>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />

@@ -1,8 +1,15 @@
 import { useState, useCallback } from 'react'
 
 export function useTimeSlot() {
-  const [selected, setSelected] = useState(null)
-  const select = useCallback(time => setSelected(time), [])
-  const reset = useCallback(() => setSelected(null), [])
-  return { selected, select, reset }
+  const [startTime, setStartTime] = useState(null)
+  const [duration, setDuration]   = useState(120) // Default 2 hours
+
+  const selectTime = useCallback(time => setStartTime(time), [])
+  const changeDuration = useCallback(mins => setDuration(mins), [])
+  const reset = useCallback(() => {
+    setStartTime(null)
+    setDuration(120)
+  }, [])
+
+  return { startTime, duration, selectTime, changeDuration, reset }
 }

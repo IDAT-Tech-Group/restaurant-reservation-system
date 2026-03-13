@@ -2,6 +2,7 @@ import { useCallback } from 'react'
 import Button from '../../ui/Button.jsx'
 import FormField from '../../ui/FormField.jsx'
 import { useSettings, DEFAULT_SETTINGS } from '../../../context/SettingsContext.jsx'
+import { TOTAL_TABLES } from '../../../constants/reservations.js'
 
 export default function SettingsView() {
   const { settings, updateSettings, resetSettings } = useSettings()
@@ -39,10 +40,10 @@ export default function SettingsView() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <FormField label="Apertura"                id="s-open"     type="time"   value={settings.open}     onChange={set('open')}     />
             <FormField label="Cierre"                  id="s-close"    type="time"   value={settings.close}    onChange={set('close')}    />
-            <FormField label="Número de mesas" id="s-tables" type="number" value={settings.tables} onChange={set('tables')} />
+            <FormField label="Número de mesas totales" id="s-tables" type="number" value={TOTAL_TABLES} readOnly disabled />
           </div>
           <p className="text-xs text-ink-ghost dark:text-ink-ghost mt-3">
-            ⚠️ El número de mesas se refleja en el modal de nueva reserva.
+            ⚠️ El número de mesas se calcula de manera automática basado en la configuración maestra de zonas y locaciones.
           </p>
         </section>
 

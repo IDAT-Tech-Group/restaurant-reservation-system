@@ -1,10 +1,15 @@
-import { useState, useCallback } from 'react'
+import React, { useState, useCallback } from 'react'
 import Button from '../../ui/Button.jsx'
 import FormField from '../../ui/FormField.jsx'
-import TimeSlotPicker from './TimeSlotPicker.jsx'
+import TimeSlotPicker from './TimeSlotPicker.jsx' // To be removed
+import TurnPicker from './TurnPicker.jsx'
+import InteractiveTableMap from './InteractiveTableMap.jsx'
+import LoginModal from './LoginModal.jsx'
 import SuccessModal from '../SuccessModal.jsx'
-import { TODAY_ISO, MAX_DATE_ISO } from '../../../constants/reservations.js'
+import { TODAY_ISO, MAX_DATE_ISO, ZONES } from '../../../constants/reservations.js'
+import { useReservations } from '../../../context/ReservationsContext.jsx'
 import { useAuth } from '../../../context/AuthContext'
+import { addTime } from '../../../lib/timeUtils.js'
 
 const PERKS = [
   'Confirmación inmediata por correo',
@@ -24,19 +29,37 @@ export default function ReservationFormUI({
 }) {
 
   const { user } = useAuth()   // ✅ ahora sí existe user
+  const { getAvailableTables } = useReservations()
 
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [date, setDate] = useState(TODAY_ISO)
+  const [zone, setZone] = useState(ZONES[0].id)
+  const [selectedTable, setSelectedTable] = useState(null)
   const [notes, setNotes] = useState('')
   const [error, setError] = useState('')
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
 
-  const handleSubmit = useCallback((e) => {
+  // Calcular mesas disponibles usando nuestra nueva función del contexto
+  const endTime = timeSlot.startTime ? addTime(timeSlot.startTime, timeSlot.duration) : null
+  
+  const availableTables = React.useMemo(() => {
+    if (!date || !timeSlot.startTime || !endTime) return []
+    return getAvailableTables(date, timeSlot.startTime, endTime, {
+      zone, 
+      persons: personCount.count 
+    })
+  }, [date, timeSlot.startTime, endTime, zone, personCount.count, getAvailableTables])
 
-    e.preventDefault()
+  const submitReservation = useCallback((forceBypassAuth = false) => {
+    if (!user && !forceBypassAuth) {
+      setError("Inicia sesión o regístrate para separar tu mesa.")
+      setIsLoginModalOpen(true)
+      return
+    }
 
-    if (!user) {
-      setError("Debes iniciar sesión para reservar")
+    if (!selectedTable) {
+      setError("Por favor selecciona una mesa disponible del mapa")
       return
     }
 
@@ -45,7 +68,11 @@ export default function ReservationFormUI({
     const result = onSubmit({
       name,
       phone,
+      email: user.username,
       date,
+      zone, 
+      endTime, // Se usará en el context para cruces
+      table: selectedTable, // Ahora es el ID explícito de la mesa
       notes
     })
 
@@ -53,8 +80,18 @@ export default function ReservationFormUI({
       setError(result.error)
       return
     }
+  }, [name, phone, date, endTime, selectedTable, notes, user, onSubmit])
 
-  }, [name, phone, date, notes, user, onSubmit])
+  const handleSubmit = useCallback((e) => {
+    e.preventDefault()
+    submitReservation()
+  }, [submitReservation])
+
+  const handleLoginSuccess = useCallback(() => {
+    setIsLoginModalOpen(false)
+    // Se fuerza el bypass xq el context update de 'user' puede no estar listo en este render tick
+    submitReservation(true) 
+  }, [submitReservation])
 
   return (
     <section id="reservar" className="bg-ink dark:bg-dark-bg py-24 px-8">
@@ -184,15 +221,67 @@ export default function ReservationFormUI({
             <div className="flex flex-col gap-1.5">
 
               <label className="text-xs font-bold uppercase tracking-wider text-ink-soft dark:text-ink-ghost">
-                Horario
+                Turno
               </label>
 
-              <TimeSlotPicker
-                selectedTime={timeSlot.selected}
-                onSelect={timeSlot.select}
+              <TurnPicker
+                startTime={timeSlot.startTime}
+                duration={timeSlot.duration}
+                onSelectTime={timeSlot.selectTime}
+                onChangeDuration={timeSlot.changeDuration}
               />
 
             </div>
+
+            <div className="flex flex-col gap-1.5 mt-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-ink-soft dark:text-ink-ghost mb-1">
+                2. Elige tu Zona Preferida
+              </label>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                {ZONES.map(z => (
+                  <button
+                    key={z.id}
+                    type="button"
+                    onClick={() => {
+                      setZone(z.id)
+                      setSelectedTable(null) // Reset al cambiar zona
+                    }}
+                    className={`py-3 px-2 rounded-xl border-2 text-xs font-bold flex flex-col items-center gap-1 transition-all ${
+                      zone === z.id 
+                      ? 'bg-ink dark:bg-white text-white dark:text-ink border-ink dark:border-white shadow-md' 
+                      : 'bg-surface dark:bg-dark-surface border-border-col dark:border-dark-border text-ink-soft hover:border-ink/20'
+                    }`}
+                  >
+                    <span className="text-xl leading-none">{z.icon}</span>
+                    <span>{z.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {timeSlot.startTime ? (
+              <div className="flex flex-col gap-1.5 mt-4 p-4 rounded-xl border border-border-col dark:border-dark-border bg-ink/5 dark:bg-white/5">
+                <div className="flex justify-between items-end mb-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-ink-soft dark:text-ink-ghost">
+                    3. Selecciona tu mesa 
+                  </label>
+                  <span className="text-[10px] bg-gold/20 text-gold-dark px-2 rounded-full font-bold">
+                    {timeSlot.startTime} a {endTime}
+                  </span>
+                </div>
+                
+                <InteractiveTableMap 
+                  availableTables={availableTables}
+                  selectedTableId={selectedTable}
+                  onSelectTable={setSelectedTable}
+                  requiredPersons={personCount.count}
+                />
+              </div>
+            ) : (
+                <div className="text-center p-4 border border-dashed rounded-xl border-border-col dark:border-dark-border text-xs text-ink-ghost">
+                  Debes seleccionar un horario primero para ver las mesas disponibles.
+                </div>
+            )}
 
             <FormField
               label="Notas especiales (opcional)"
@@ -205,7 +294,7 @@ export default function ReservationFormUI({
             />
 
             {error && (
-              <p className="text-sm text-red-500 font-semibold">
+              <p className="text-sm text-red-500 font-semibold mt-2 bg-red-50 dark:bg-red-900/10 p-2 rounded text-center">
                 {error}
               </p>
             )}
@@ -230,6 +319,12 @@ export default function ReservationFormUI({
           onClose={onCloseSuccess}
         />
       )}
+
+      <LoginModal 
+        isOpen={isLoginModalOpen} 
+        onClose={() => setIsLoginModalOpen(false)}
+        onSuccess={handleLoginSuccess}
+      />
 
     </section>
   )

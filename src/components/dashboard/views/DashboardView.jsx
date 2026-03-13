@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import StatCard from '../../ui/StatCard.jsx'
 import { useReservations } from '../../../context/ReservationsContext.jsx'
 import { useSettings } from '../../../context/SettingsContext.jsx'
-import { STATS_CONFIG, TODAY_ISO } from '../../../constants/reservations.js'
+import { STATS_CONFIG, TODAY_ISO, TOTAL_TABLES } from '../../../constants/reservations.js'
 
 const TODAY_LABEL = new Date().toLocaleDateString('es-ES', {
   weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
@@ -32,7 +32,7 @@ export default function DashboardView() {
     const todayActive      = reservations.filter(r => r.date === TODAY_ISO)
     const reservasHoy      = todayActive.length
     const mesasReservadas  = reservations.length
-    const mesasDisponibles = settings.tables - new Set(todayActive.map(r => r.table)).size
+    const mesasDisponibles = TOTAL_TABLES - new Set(todayActive.map(r => r.table)).size
     const [weekStart, weekEnd] = getWeekRange()
     const totalSemana = reservations.filter(r => r.date >= weekStart && r.date <= weekEnd).length
     return { reservasHoy, mesasReservadas, mesasDisponibles, totalSemana }
@@ -42,12 +42,17 @@ export default function DashboardView() {
   const timelineSlots = useMemo(() => {
     const todayRes = reservations
       .filter(r => r.date === TODAY_ISO)
-      .sort((a, b) => a.time.localeCompare(b.time))
+      .sort((a, b) => {
+        const timeA = a.startTime || a.time || "00:00";
+        const timeB = b.startTime || b.time || "00:00";
+        return timeA.localeCompare(timeB);
+      })
 
     const grouped = {}
     todayRes.forEach(r => {
-      if (!grouped[r.time]) grouped[r.time] = []
-      grouped[r.time].push(r)
+      const t = r.startTime || r.time || "00:00"
+      if (!grouped[t]) grouped[t] = []
+      grouped[t].push(r)
     })
 
     return Object.entries(grouped).map(([time, res]) => ({ time, reservas: res }))
@@ -91,7 +96,7 @@ export default function DashboardView() {
                       key={r.id}
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-pill text-xs font-bold bg-gold/15 dark:bg-gold/10 text-ink dark:text-white border border-gold/30"
                     >
-                      🪑 {r.table === 'auto' ? 'Auto' : `Mesa ${r.table}`} · {r.name.split(' ')[0]} ({r.persons} pers.)
+                      🪑 {r.table === 'auto' ? 'Auto' : `Mesa ${r.table}`} · {(r.name || 'Cliente').split(' ')[0]} ({r.persons} pers.)
                     </span>
                   ))}
                 </div>

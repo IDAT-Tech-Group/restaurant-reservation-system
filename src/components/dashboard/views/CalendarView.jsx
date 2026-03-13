@@ -3,7 +3,7 @@ import Button from '../../ui/Button.jsx'
 import Badge from '../../ui/Badge.jsx'
 import { cx } from '../../../lib/cx.js'
 import { useReservations } from '../../../context/ReservationsContext.jsx'
-import { STATUS_LABEL } from '../../../constants/reservations.js'
+import { ZONES } from '../../../constants/reservations.js'
 
 const WEEKDAYS    = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 const MONTH_NAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
@@ -25,6 +25,15 @@ export default function CalendarView() {
   const [viewYear,  setViewYear]  = useState(CURRENT_YEAR)
   const [viewMonth, setViewMonth] = useState(CURRENT_MONTH)
   const [selected,  setSelected]  = useState(TODAY_DAY)
+
+  const renderStatus = (status) => {
+    switch (status) {
+      case 'pendiente': return <Badge variant="orange">⏳ Pendiente</Badge>
+      case 'reservado': return <Badge variant="blue">🔒 Reservado</Badge>
+      case 'completado': return <Badge variant="green">✅ Completado</Badge>
+      default: return <Badge variant="gray">{status}</Badge>
+    }
+  }
 
   const goToPrev = useCallback(() => {
     setViewMonth(m => {
@@ -211,10 +220,11 @@ export default function CalendarView() {
                       <p className="text-sm font-black text-ink dark:text-white">{r.name}</p>
                       <p className="text-xs text-ink-ghost dark:text-ink-ghost">{r.phone}</p>
                     </div>
-                    <Badge variant="green">{STATUS_LABEL}</Badge>
+                    {renderStatus(r.status)}
                   </div>
                   <div className="flex flex-wrap gap-3 text-xs text-ink-soft dark:text-ink-ghost">
-                    <span>🕐 {r.time}</span>
+                    <span>🕐 {r.startTime} - {r.endTime}</span>
+                    <span>📍 {ZONES.find(z => z.id === r.zone)?.name || 'General'}</span>
                     <span>🪑 {r.table === 'auto' ? 'Mesa auto' : `Mesa ${r.table}`}</span>
                     <span>👥 {r.persons} pers.</span>
                   </div>
