@@ -1,38 +1,25 @@
 import { fetchApi } from './api';
-import { MOCK_USERS } from '../constants/users';
 
 /**
  * SERVICIO DE AUTENTICACIÓN
  */
 
 export const login = async (credentials) => {
-  // --- Futura llamada a Laravel ---
-  // return await fetchApi('/login', {
-  //    method: 'POST',
-  //    body: JSON.stringify(credentials)
-  // });
-  
-  // --- Simulación temporal ---
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const user = MOCK_USERS.find(
-        (u) => u.username === credentials.username && u.password === credentials.password
-      );
+  // credentials debería tener { email, password }
+  // Laravel suele usar 'email' en lugar de 'username'
+  const payload = {
+    username: credentials.username || credentials.email,
+    password: credentials.password
+  };
 
-      if (user) {
-        resolve({ success: true, user, token: 'fake-jwt-token' });
-      } else {
-        reject(new Error("Credenciales inválidas"));
-      }
-    }, 500);
+  const response = await fetchApi('/login', {
+    method: 'POST',
+    body: JSON.stringify(payload)
   });
+
+  return response; // En base a la guía, retornará { token, user }
 };
 
 export const logout = async () => {
-  // --- Futura llamada a Laravel ---
-  // return await fetchApi('/logout', { method: 'POST' });
-  
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(true), 200);
-  });
+  return await fetchApi('/logout', { method: 'POST' });
 };

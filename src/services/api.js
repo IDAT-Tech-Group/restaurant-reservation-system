@@ -20,11 +20,11 @@ export async function fetchApi(endpoint, options = {}) {
     ...options.headers,
   };
 
-  // Aquí en el futuro puedes obtener tu token y asignarlo:
-  // const token = localStorage.getItem('token');
-  // if (token) {
-  //   headers['Authorization'] = `Bearer ${token}`;
-  // }
+  // Obtenemos el token desde localStorage, que guardaremos en el login
+  const token = localStorage.getItem('token');
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
 
   const config = {
     ...options,

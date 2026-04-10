@@ -6,7 +6,7 @@ import TurnPicker from './TurnPicker.jsx'
 import InteractiveTableMap from './InteractiveTableMap.jsx'
 import LoginModal from './LoginModal.jsx'
 import SuccessModal from '../SuccessModal.jsx'
-import { TODAY_ISO, MAX_DATE_ISO, ZONES } from '../../../constants/reservations.js'
+import { TODAY_ISO, MAX_DATE_ISO } from '../../../constants/reservations.js'
 import { useReservations } from '../../../context/ReservationsContext.jsx'
 import { useAuth } from '../../../context/AuthContext'
 import { addTime } from '../../../lib/timeUtils.js'
@@ -29,12 +29,18 @@ export default function ReservationFormUI({
 }) {
 
   const { user } = useAuth()   // ✅ ahora sí existe user
-  const { getAvailableTables } = useReservations()
+  const { getAvailableTables, zones: ZONES } = useReservations()
 
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [date, setDate] = useState(TODAY_ISO)
-  const [zone, setZone] = useState(ZONES[0].id)
+  const [zone, setZone] = useState('')
+
+  React.useEffect(() => {
+    if (ZONES && ZONES.length > 0 && !zone) {
+      setZone(ZONES[0].id)
+    }
+  }, [ZONES, zone])
   const [selectedTable, setSelectedTable] = useState(null)
   const [notes, setNotes] = useState('')
   const [error, setError] = useState('')
@@ -51,7 +57,7 @@ export default function ReservationFormUI({
     })
   }, [date, timeSlot.startTime, endTime, zone, personCount.count, getAvailableTables])
 
-  const submitReservation = useCallback((forceBypassAuth = false) => {
+  const submitReservation = useCallback(async (forceBypassAuth = false) => {
     if (!user && !forceBypassAuth) {
       setError("Inicia sesión o regístrate para separar tu mesa.")
       setIsLoginModalOpen(true)
@@ -65,7 +71,7 @@ export default function ReservationFormUI({
 
     setError('')
 
-    const result = onSubmit({
+    const result = await onSubmit({
       name,
       phone,
       email: user.username,

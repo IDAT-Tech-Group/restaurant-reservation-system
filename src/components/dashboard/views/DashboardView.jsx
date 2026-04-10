@@ -32,7 +32,7 @@ export default function DashboardView() {
     const todayActive      = reservations.filter(r => r.date === TODAY_ISO)
     const reservasHoy      = todayActive.length
     const mesasReservadas  = reservations.length
-    const mesasDisponibles = TOTAL_TABLES - new Set(todayActive.map(r => r.table)).size
+    const mesasDisponibles = TOTAL_TABLES - new Set(todayActive.map(r => r.table || r.table_id)).size
     const [weekStart, weekEnd] = getWeekRange()
     const totalSemana = reservations.filter(r => r.date >= weekStart && r.date <= weekEnd).length
     return { reservasHoy, mesasReservadas, mesasDisponibles, totalSemana }
@@ -43,14 +43,14 @@ export default function DashboardView() {
     const todayRes = reservations
       .filter(r => r.date === TODAY_ISO)
       .sort((a, b) => {
-        const timeA = a.startTime || a.time || "00:00";
-        const timeB = b.startTime || b.time || "00:00";
+        const timeA = a.startTime || a.start_time || a.time || "00:00";
+        const timeB = b.startTime || b.start_time || b.time || "00:00";
         return timeA.localeCompare(timeB);
       })
 
     const grouped = {}
     todayRes.forEach(r => {
-      const t = r.startTime || r.time || "00:00"
+      const t = r.startTime || r.start_time || r.time || "00:00"
       if (!grouped[t]) grouped[t] = []
       grouped[t].push(r)
     })
@@ -96,7 +96,7 @@ export default function DashboardView() {
                       key={r.id}
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-pill text-xs font-bold bg-gold/15 dark:bg-gold/10 text-ink dark:text-white border border-gold/30"
                     >
-                      🪑 {r.table === 'auto' ? 'Auto' : `Mesa ${r.table}`} · {(r.name || 'Cliente').split(' ')[0]} ({r.persons} pers.)
+                      🪑 {(r.table || r.table_id) === 'auto' ? 'Auto' : `Mesa ${r.table || r.table_id}`} · {(r.name || 'Cliente').split(' ')[0]} ({r.persons} pers.)
                     </span>
                   ))}
                 </div>

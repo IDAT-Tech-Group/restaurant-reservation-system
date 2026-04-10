@@ -223,9 +223,9 @@ export default function CalendarView() {
                     {renderStatus(r.status)}
                   </div>
                   <div className="flex flex-wrap gap-3 text-xs text-ink-soft dark:text-ink-ghost">
-                    <span>🕐 {r.startTime} - {r.endTime}</span>
-                    <span>📍 {ZONES.find(z => z.id === r.zone)?.name || 'General'}</span>
-                    <span>🪑 {r.table === 'auto' ? 'Mesa auto' : `Mesa ${r.table}`}</span>
+                    <span>🕐 {r.startTime || r.start_time} - {r.endTime || r.end_time}</span>
+                    <span>📍 {ZONES.find(z => z.id === (r.zone || r.zone_id))?.name || 'General'}</span>
+                    <span>🪑 {(r.table || r.table_id) === 'auto' ? 'Mesa auto' : `Mesa ${r.table || r.table_id}`}</span>
                     <span>👥 {r.persons} pers.</span>
                   </div>
                 </div>

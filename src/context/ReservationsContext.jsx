@@ -1,70 +1,98 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
-import { INITIAL_RESERVATIONS, TABLES } from '../constants/reservations.js'
 import { isOverlapping } from '../lib/timeUtils.js'
-
-const LS_KEY = 'restaurant_reservations'
-
-function loadFromStorage() {
-  try {
-    const raw = localStorage.getItem(LS_KEY)
-    if (raw) {
-      const parsed = JSON.parse(raw)
-      // Migración para actualizar las reservas antiguas de Dick Arrunategui a 'pendiente'
-      const migrated = parsed.map(r => {
-        if (r.name && r.name.toLowerCase().includes('dick') && r.status === 'reservado') {
-          return { ...r, status: 'pendiente' }
-        }
-        return r
-      })
-      return migrated
-    }
-  } catch {
-    console.warn('No se pudieron cargar las reservas desde localStorage, usando datos iniciales')
-  }
-  return INITIAL_RESERVATIONS
-}
+import { getReservations, createReservation, deleteReservation } from '../services/reservationsService.js'
+import { fetchApi } from '../services/api.js'
 
 const ReservationsContext = createContext(null)
 
 export function ReservationsProvider({ children }) {
-  const [reservations, setReservations] = useState(loadFromStorage)
+  const [reservations, setReservations] = useState([])
+  const [tables, setTables] = useState([])
+  const [zones, setZones] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  useEffect(() => {
-    localStorage.setItem(LS_KEY, JSON.stringify(reservations))
-  }, [reservations])
+  // Fetch initial data from Laravel API
+  const fetchData = useCallback(async () => {
+    try {
+      setIsLoading(true)
+      // Ejecutar las promesas en paralelo
+      const [resData, mesasData] = await Promise.all([
+        getReservations().catch(() => []),
+        fetchApi('/mesas').catch(() => [])
+      ])
+      
+      setReservations(resData)
 
-  useEffect(() => {
-    function onStorage(e) {
-      if (e.key !== LS_KEY || e.newValue === null) return
-      try {
-        setReservations(JSON.parse(e.newValue))
-      } catch {
+      // Asumimos que `/mesas` trae [ { id, capacity, number, zone: { id, name, icon } }, ... ]
+      // o adaptarlo según la estructura del JSON normal de Laravel
+      if (Array.isArray(mesasData)) {
+        // En base a la estructura original: TABLES usa id, capacity, zone (string o ID)
+        // ZONES usa id, name, icon
+        const extractedZonesMap = new Map()
+        const formattedTables = mesasData.map(t => {
+          if (t.zone) {
+            extractedZonesMap.set(t.zone.id, t.zone)
+            return { ...t, zone: t.zone.id }
+          }
+          return t
+        })
+
+        setTables(formattedTables)
+        
+        // Si no vienen zonas anidadas, quizás deberíamos obtenerlas de `/zonas` o usar default
+        if (extractedZonesMap.size > 0) {
+          setZones(Array.from(extractedZonesMap.values()))
+        } else {
+          // Fallback mínimo
+          setZones([
+            { id: 1, name: 'Salón Principal', icon: '🏛️' },
+            { id: 2, name: 'Terraza', icon: '🌅' },
+            { id: 3, name: 'Área VIP', icon: '✨' },
+            { id: 4, name: 'Junto a Ventana', icon: '🪟' }
+          ])
+        }
       }
+    } catch (e) {
+      console.error("Error cargando reservas y mesas:", e)
+    } finally {
+      setIsLoading(false)
     }
-    window.addEventListener('storage', onStorage)
-    return () => window.removeEventListener('storage', onStorage)
   }, [])
 
-  const addReservation = useCallback((data) => {
-    setReservations(prev => {
-      const id = String(Math.max(0, ...prev.map(r => parseInt(r.id, 10))) + 1).padStart(3, '0')
-      return [...prev, { ...data, id, status: data.status || 'pendiente' }]
-    })
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+  const addReservation = useCallback(async (data) => {
+    try {
+      const response = await createReservation(data)
+      if (response) {
+         setReservations(prev => [...prev, response])
+         return { success: true, data: response }
+      }
+      return { success: false, error: "Error desconocido al guardar" }
+    } catch (e) {
+      return { success: false, error: e.message }
+    }
   }, [])
 
-  const releaseTable = useCallback((id) => {
+  const releaseTable = useCallback(async (id) => {
+    await deleteReservation(id)
     setReservations(prev => prev.filter(r => r.id !== id))
   }, [])
 
-  const updateReservationStatus = useCallback((id, newStatus) => {
+  const updateReservationStatus = useCallback(async (id, newStatus) => {
+    // Endpoint para actualizar estado pago
+    await fetchApi(`/reservas/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status: newStatus })
+    }).catch(console.error)
+
     setReservations(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r))
   }, [])
 
-  // Novedad: Obtener mesas disponibles para un dia + rango de tiempo + capacidad opcional
   const getAvailableTables = useCallback((date, startTime, endTime, capacityObj = { persons: 0, zone: '' }) => {
-
-    // Filtrar mesas por zona o capacidad previamente si se pasaron parámetros
-    let candidateTables = TABLES
+    let candidateTables = tables
     if (capacityObj.zone) {
       candidateTables = candidateTables.filter(t => t.zone === capacityObj.zone)
     }
@@ -72,21 +100,28 @@ export function ReservationsProvider({ children }) {
       candidateTables = candidateTables.filter(t => t.capacity >= capacityObj.persons)
     }
 
-    // Reservas que chocan ese día
     const conflictingReservations = reservations.filter(r => {
+      // Comparación estricta de fecha o manejamos fechas en diferentes formatos
       if (r.date !== date) return false
-      // Usa las funciones del util
-      return isOverlapping(startTime, endTime, r.startTime, r.endTime)
+      return isOverlapping(startTime, endTime, r.startTime || r.start_time, r.endTime || r.end_time)
     })
 
-    const occupiedTableIds = new Set(conflictingReservations.map(r => Number(r.table)))
+    const occupiedTableIds = new Set(conflictingReservations.map(r => Number(r.table_id || r.table)))
 
-    // Retorna solo las mesas candidatas que NO están ocupadas
     return candidateTables.filter(t => !occupiedTableIds.has(t.id))
-  }, [reservations])
+  }, [reservations, tables])
 
   return (
-    <ReservationsContext.Provider value={{ reservations, addReservation, releaseTable, getAvailableTables, updateReservationStatus }}>
+    <ReservationsContext.Provider value={{
+      reservations, 
+      tables,
+      zones,
+      isLoading,
+      addReservation, 
+      releaseTable, 
+      getAvailableTables, 
+      updateReservationStatus 
+    }}>
       {children}
     </ReservationsContext.Provider>
   )

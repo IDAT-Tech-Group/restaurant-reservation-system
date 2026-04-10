@@ -16,15 +16,15 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
 
   if (!isOpen) return null
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
 
     let result
     if (isRegistering) {
-      result = register(name, email, phone, password)
+      result = await register(name, email, phone, password)
     } else {
-      result = login(email, password)
+      result = await login(email, password)
     }
 
     if (result?.error) {

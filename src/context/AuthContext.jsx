@@ -1,85 +1,47 @@
 import { createContext, useContext, useState } from "react"
-import users from "../constants/users.json"
+import { login as loginApi, logout as logoutApi } from "../services/authService"
 
 const AuthContext = createContext()
 
 export const AuthProvider = ({ children }) => {
-
-  const [registeredUsers, setRegisteredUsers] = useState(() => {
-    const savedUsers = localStorage.getItem("users")
-
-    if (!savedUsers) {
-      return users
-    }
-
+  const [user, setUser] = useState(() => {
     try {
-      const parsedSavedUsers = JSON.parse(savedUsers)
-      const usersMap = new Map()
-
-      users.forEach((user) => {
-        usersMap.set(user.username.toLowerCase(), user)
-      })
-
-      parsedSavedUsers.forEach((user) => {
-        usersMap.set(user.username.toLowerCase(), user)
-      })
-
-      return Array.from(usersMap.values())
+      const stored = localStorage.getItem("user")
+      return stored ? JSON.parse(stored) : null
     } catch {
-      return users
+      return null
     }
   })
 
-  const [user, setUser] = useState(
-    JSON.parse(localStorage.getItem("user"))
-  )
-
-  const login = (username, password) => {
-
-    const foundUser = registeredUsers.find(
-      u => u.username === username && u.password === password
-    )
-
-    if (!foundUser) {
-      return { error: "Credenciales incorrectas" }
+  const login = async (username, password) => {
+    try {
+      const response = await loginApi({ username, password })
+      // Laravel devuelve token y user
+      if (response && response.token) {
+        localStorage.setItem("token", response.token)
+        localStorage.setItem("user", JSON.stringify(response.user))
+        setUser(response.user)
+        return { success: true }
+      }
+      return { error: "Formato de respuesta incorrecto del servidor" }
+    } catch (err) {
+      return { error: err.message || "Credenciales incorrectas o error de conexión" }
     }
-
-    localStorage.setItem("user", JSON.stringify(foundUser))
-    setUser(foundUser)
-
-    return { success: true }
   }
 
-  const register = (name, email, phone, password) => {
-    const normalizedEmail = email.trim().toLowerCase()
-
-    const userExists = registeredUsers.some(
-      u => u.username.toLowerCase() === normalizedEmail
-    )
-
-    if (userExists) {
-      return { error: "Ya existe una cuenta con ese email" }
-    }
-
-    const newUser = {
-      name: name.trim(),
-      username: normalizedEmail,
-      phone: phone.trim(),
-      password,
-    }
-
-    const updatedUsers = [...registeredUsers, newUser]
-    localStorage.setItem("users", JSON.stringify(updatedUsers))
-    localStorage.setItem("user", JSON.stringify(newUser))
-
-    setRegisteredUsers(updatedUsers)
-    setUser(newUser)
-
-    return { success: true }
+  const register = async (name, email, phone, password) => {
+    // Opcional, si hay endpoint de /register
+    return { error: "El registro será verificado por el Backend con /api/register" }
   }
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await logoutApi()
+    } catch (e) {
+      console.warn("Fallo en logout backend:", e)
+    }
     localStorage.removeItem("user")
+    localStorage.removeItem("token")
     setUser(null)
   }
 

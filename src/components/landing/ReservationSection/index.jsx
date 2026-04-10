@@ -12,7 +12,7 @@ export default function ReservationSection() {
   const [booking,     setBooking]     = useState(null)
   const [formKey,     setFormKey]     = useState(0)
 
-  const handleSubmit = useCallback((formData) => {
+  const handleSubmit = useCallback(async (formData) => {
     if (!timeSlot.startTime) return { error: 'Por favor selecciona un horario' }
 
     const reservation = {
@@ -21,7 +21,11 @@ export default function ReservationSection() {
       startTime: timeSlot.startTime,
     }
 
-    addReservation(reservation)
+    const result = await addReservation(reservation)
+    if (!result.success) {
+      return { error: result.error || 'Ocurrió un error en el servidor.' }
+    }
+
     setBooking(reservation)
     setShowSuccess(true)
     personCount.reset()

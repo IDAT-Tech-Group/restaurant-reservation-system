@@ -1,7 +1,41 @@
 import { cx } from '../../../lib/cx.js'
-import { TIME_SLOTS, TURN_DURATIONS } from '../../../constants/timeSlots.js'
+import { useState, useEffect } from 'react'
+import { fetchApi } from '../../../services/api.js'
+import { TIME_SLOTS as FALLBACK_SLOTS, TURN_DURATIONS as FALLBACK_DURATIONS } from '../../../constants/timeSlots.js'
 
 export default function TurnPicker({ startTime, duration, onSelectTime, onChangeDuration }) {
+  const [timeSlots, setTimeSlots] = useState(FALLBACK_SLOTS)
+  const [turnDurations, setTurnDurations] = useState(FALLBACK_DURATIONS)
+
+  useEffect(() => {
+    fetchApi('/horarios')
+      .then(data => {
+        if (data && Array.isArray(data) && data.length > 0) {
+          // Extraemos fechas únicas si es array de objetos (ej. DB: { start_time: '12:00:00' })
+          const extractedTimes = data.map(s => {
+             if (s.start_time) return s.start_time.substring(0, 5)
+             if (typeof s === 'string') return s.substring(0, 5)
+             return null
+          }).filter(Boolean)
+
+          const uniqueTimes = [...new Set(extractedTimes)].sort()
+          if (uniqueTimes.length > 0) setTimeSlots(uniqueTimes)
+
+          // Extraemos duraciones únicas
+          const extractedDurations = data.filter(s => s.duration).map(s => Number(s.duration))
+          const uniqueDurs = [...new Set(extractedDurations)].sort((a,b) => a-b)
+          
+          if (uniqueDurs.length > 0) {
+            setTurnDurations(uniqueDurs.map(d => ({
+              label: d === 60 ? '1 Hora' : (d / 60) + ' Horas',
+              value: d
+            })))
+          }
+        }
+      })
+      .catch(console.error)
+  }, [])
+
   return (
     <div className="flex flex-col gap-4">
       
@@ -11,7 +45,7 @@ export default function TurnPicker({ startTime, duration, onSelectTime, onChange
           Duración del Turno
         </label>
         <div className="flex gap-2 overflow-x-auto pb-1">
-          {TURN_DURATIONS.map((dur) => (
+          {turnDurations.map((dur) => (
             <button
               key={dur.value}
               type="button"
@@ -35,7 +69,7 @@ export default function TurnPicker({ startTime, duration, onSelectTime, onChange
           Hora de inicio
         </label>
         <div className="grid grid-cols-4 gap-2">
-          {TIME_SLOTS.map((time) => (
+          {timeSlots.map((time) => (
             <button
               key={time}
               type="button"

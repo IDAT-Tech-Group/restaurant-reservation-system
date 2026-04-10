@@ -3,11 +3,11 @@ import Button from '../ui/Button.jsx'
 import FormField from '../ui/FormField.jsx'
 import { usePersonCount } from '../../hooks/usePersonCount.jsx'
 import { useReservations } from '../../context/ReservationsContext.jsx'
-import { TODAY_ISO, MAX_DATE_ISO, TABLES, ZONES } from '../../constants/reservations.js'
+import { TODAY_ISO, MAX_DATE_ISO } from '../../constants/reservations.js'
 import { addTime } from '../../lib/timeUtils.js'
 
 export default function NewReservationModal({ isOpen, onClose }) {
-  const { reservations, addReservation, getAvailableTables } = useReservations()
+  const { addReservation, getAvailableTables, tables: TABLES, zones: ZONES } = useReservations()
   const personCount = usePersonCount()
   const [name,  setName]  = useState('')
   const [phone, setPhone] = useState('')
@@ -42,10 +42,10 @@ export default function NewReservationModal({ isOpen, onClose }) {
     onClose()
   }, [personCount, onClose])
 
-  const handleSubmit = useCallback((e) => {
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault()
     if (!table) return
-    addReservation({ 
+    const res = await addReservation({ 
       name, 
       phone, 
       email, 
@@ -57,8 +57,13 @@ export default function NewReservationModal({ isOpen, onClose }) {
       table: Number(table), 
       notes 
     })
+    
+    if (!res.success) {
+      alert("Error al guardar reserva: " + res.error)
+      return
+    }
     handleClose()
-  }, [name, phone, email, date, startTime, endTime, table, notes, personCount, addReservation, handleClose])
+  }, [name, phone, email, date, startTime, endTime, table, notes, personCount, addReservation, handleClose, TABLES])
 
   if (!isOpen) return null
 

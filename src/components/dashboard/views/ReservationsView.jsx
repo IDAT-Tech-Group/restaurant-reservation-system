@@ -19,7 +19,9 @@ export default function ReservationsView() {
 
   const filtered = useMemo(() =>
     reservations.filter(r => {
-      const matchSearch = (r.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (r.phone || '').includes(searchTerm)
+      const cName = r.user?.name || r.name || '';
+      const cPhone = r.user?.phone || r.phone || '';
+      const matchSearch = cName.toLowerCase().includes(searchTerm.toLowerCase()) || cPhone.includes(searchTerm)
       const matchDate   = !dateFilter || r.date === dateFilter
       return matchSearch && matchDate
     })
@@ -89,16 +91,16 @@ export default function ReservationsView() {
                 filtered.map(r => (
                   <tr key={r.id} className="border-b border-border-col dark:border-dark-border last:border-0 hover:bg-bg dark:hover:bg-dark-bg transition-colors">
                     <td className="px-5 py-4 text-sm font-black text-ink dark:text-white">{r.id}</td>
-                    <td className="px-5 py-4 text-sm font-semibold text-ink dark:text-white">{r.name}</td>
-                    <td className="px-5 py-4 text-sm text-ink-soft dark:text-ink-ghost">{r.phone}</td>
+                    <td className="px-5 py-4 text-sm font-semibold text-ink dark:text-white">{r.user?.name || r.name}</td>
+                    <td className="px-5 py-4 text-sm text-ink-soft dark:text-ink-ghost">{r.user?.phone || r.phone}</td>
                     <td className="px-5 py-4 text-sm text-ink-soft dark:text-ink-ghost">{formatDate(r.date)}</td>
-                    <td className="px-5 py-4 text-sm text-ink-soft dark:text-ink-ghost">{r.startTime} - {r.endTime}</td>
+                    <td className="px-5 py-4 text-sm text-ink-soft dark:text-ink-ghost">{r.startTime || r.start_time} - {r.endTime || r.end_time}</td>
                     <td className="px-5 py-4 text-sm text-ink dark:text-white">{r.persons}</td>
                     <td className="px-5 py-4 text-xs font-bold text-ink-soft dark:text-ink-ghost uppercase">
-                      {ZONES.find(z => z.id === r.zone)?.name || 'General'}
+                      {ZONES.find(z => z.id === (r.zone || r.zone_id || r.table?.zone_id))?.name || 'General'}
                     </td>
                     <td className="px-5 py-4 text-sm font-bold text-ink dark:text-white">
-                      {r.table === 'auto' ? 'Auto' : `Mesa ${r.table}`}
+                      {(r.table?.number || r.table_id || r.table) === 'auto' ? 'Auto' : `Mesa ${r.table?.number || r.table_id || r.table}`}
                     </td>
                     <td className="px-5 py-4">
                       {renderStatus(r.status)}

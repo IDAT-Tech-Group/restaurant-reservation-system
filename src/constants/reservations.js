@@ -16,29 +16,29 @@ export const MAX_DATE_ISO = (() => {
 })()
 
 export const ZONES = [
-  { id: 'principal', name: 'Salón Principal', icon: '🏛️' },
-  { id: 'terraza',   name: 'Terraza',         icon: '🌅' },
-  { id: 'vip',       name: 'Área VIP',        icon: '✨' },
-  { id: 'ventana',   name: 'Junto a Ventana', icon: '🪟' },
+  { id: 1, name: 'Salón Principal', icon: '🏛️' },
+  { id: 2, name: 'Terraza',         icon: '🌅' },
+  { id: 3, name: 'Área VIP',        icon: '✨' },
+  { id: 4, name: 'Junto a Ventana', icon: '🪟' },
 ]
 
 export const TABLES = [
   // Principal
-  { id: 1, capacity: 2, zone: 'principal' },
-  { id: 2, capacity: 2, zone: 'principal' },
-  { id: 3, capacity: 4, zone: 'principal' },
-  { id: 4, capacity: 4, zone: 'principal' },
-  { id: 5, capacity: 6, zone: 'principal' },
+  { id: 1, capacity: 2, zone: 1 },
+  { id: 2, capacity: 2, zone: 1 },
+  { id: 3, capacity: 4, zone: 1 },
+  { id: 4, capacity: 4, zone: 1 },
+  { id: 5, capacity: 6, zone: 1 },
   // Terraza
-  { id: 6, capacity: 2, zone: 'terraza' },
-  { id: 7, capacity: 4, zone: 'terraza' },
-  { id: 8, capacity: 4, zone: 'terraza' },
+  { id: 6, capacity: 2, zone: 2 },
+  { id: 7, capacity: 4, zone: 2 },
+  { id: 8, capacity: 4, zone: 2 },
   // VIP
-  { id: 9, capacity: 8, zone: 'vip' },
-  { id: 10, capacity: 8, zone: 'vip' },
+  { id: 9, capacity: 8, zone: 3 },
+  { id: 10, capacity: 8, zone: 3 },
   // Ventana
-  { id: 11, capacity: 2, zone: 'ventana' },
-  { id: 12, capacity: 4, zone: 'ventana' },
+  { id: 11, capacity: 2, zone: 4 },
+  { id: 12, capacity: 4, zone: 4 },
 ]
 
 export const TOTAL_TABLES = TABLES.length
