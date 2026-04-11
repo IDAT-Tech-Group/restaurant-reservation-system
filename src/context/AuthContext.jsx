@@ -1,5 +1,5 @@
 import { createContext, useContext, useState } from "react"
-import { login as loginApi, logout as logoutApi } from "../services/authService"
+import { login as loginApi, logout as logoutApi, register as registerApi } from "../services/authService"
 
 const AuthContext = createContext()
 
@@ -30,8 +30,18 @@ export const AuthProvider = ({ children }) => {
   }
 
   const register = async (name, email, phone, password) => {
-    // Opcional, si hay endpoint de /register
-    return { error: "El registro será verificado por el Backend con /api/register" }
+    try {
+      const response = await registerApi({ name, email, phone, password })
+      if (response && response.token) {
+        localStorage.setItem("token", response.token)
+        localStorage.setItem("user", JSON.stringify(response.user))
+        setUser(response.user)
+        return { success: true }
+      }
+      return { error: response?.message || "Error al registrar la cuenta" }
+    } catch (err) {
+      return { error: err.message || "Error de conexión o datos inválidos" }
+    }
   }
 
   const logout = async () => {

@@ -3,13 +3,13 @@ import { useAuth } from '../../../context/AuthContext'
 import Button from '../../ui/Button.jsx'
 import FormField from '../../ui/FormField.jsx'
 
-export default function LoginModal({ isOpen, onClose, onSuccess }) {
+export default function LoginModal({ isOpen, onClose, onSuccess, initialName = '', initialPhone = '' }) {
   const { login, register } = useAuth()
   
   const [isRegistering, setIsRegistering] = useState(false)
   
-  const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
+  const [name, setName] = useState(initialName)
+  const [phone, setPhone] = useState(initialPhone)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')

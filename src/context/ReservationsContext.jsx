@@ -2,10 +2,12 @@ import { createContext, useContext, useState, useCallback, useEffect } from 'rea
 import { isOverlapping } from '../lib/timeUtils.js'
 import { getReservations, createReservation, deleteReservation } from '../services/reservationsService.js'
 import { fetchApi } from '../services/api.js'
+import { useAuth } from './AuthContext.jsx'
 
 const ReservationsContext = createContext(null)
 
 export function ReservationsProvider({ children }) {
+  const { user } = useAuth()
   const [reservations, setReservations] = useState([])
   const [tables, setTables] = useState([])
   const [zones, setZones] = useState([])
@@ -61,7 +63,7 @@ export function ReservationsProvider({ children }) {
 
   useEffect(() => {
     fetchData()
-  }, [fetchData])
+  }, [fetchData, user?.id])
 
   const addReservation = useCallback(async (data) => {
     try {

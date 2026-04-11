@@ -27,13 +27,27 @@ export default function ReservationsView() {
     })
   , [reservations, searchTerm, dateFilter])
 
-  const renderStatus = (status) => {
-    switch (status) {
-      case 'pendiente': return <Badge variant="orange">⏳ Pendiente</Badge>
-      case 'reservado': return <Badge variant="blue">🔒 Reservado</Badge>
-      case 'completado': return <Badge variant="green">✅ Completado</Badge>
-      default: return <Badge variant="gray">{status}</Badge>
-    }
+  const STATUS_STYLES = {
+    pendiente: 'bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-400',
+    reservado: 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-400',
+    completado: 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-400',
+    cancelado: 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-400'
+  }
+
+  const renderStatusSelect = (r) => {
+    return (
+      <select
+        value={r.status}
+        onChange={(e) => updateReservationStatus(r.id, e.target.value)}
+        className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-pill text-xs font-bold tracking-wide outline-none cursor-pointer appearance-none border-0 text-center ${STATUS_STYLES[r.status] || STATUS_STYLES.pendiente}`}
+        style={{ paddingRight: '0.75rem' }}
+      >
+        <option value="pendiente" className="text-ink dark:text-white bg-surface dark:bg-dark-surface font-sans">⏳ Pendiente</option>
+        <option value="reservado" className="text-ink dark:text-white bg-surface dark:bg-dark-surface font-sans">🔒 Reservado</option>
+        <option value="completado" className="text-ink dark:text-white bg-surface dark:bg-dark-surface font-sans">✅ Completado</option>
+        <option value="cancelado" className="text-ink dark:text-white bg-surface dark:bg-dark-surface font-sans">❌ Cancelado</option>
+      </select>
+    )
   }
 
   return (
@@ -103,14 +117,10 @@ export default function ReservationsView() {
                       {(r.table?.number || r.table_id || r.table) === 'auto' ? 'Auto' : `Mesa ${r.table?.number || r.table_id || r.table}`}
                     </td>
                     <td className="px-5 py-4">
-                      {renderStatus(r.status)}
+                      {renderStatusSelect(r)}
                     </td>
                     <td className="px-5 py-4">
-                      {r.status === 'pendiente' && (
-                        <Button variant="outline" size="sm" className="text-xs mr-2 mb-2 lg:mb-0" onClick={() => updateReservationStatus(r.id, 'reservado')}>
-                          Confirmar Pago
-                        </Button>
-                      )}
+
                       <Button variant="danger" size="sm" className="text-xs" onClick={() => releaseTable(r.id)}>
                         Eliminar
                       </Button>

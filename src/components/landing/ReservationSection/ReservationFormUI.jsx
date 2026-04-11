@@ -326,11 +326,15 @@ export default function ReservationFormUI({
         />
       )}
 
-      <LoginModal 
-        isOpen={isLoginModalOpen} 
-        onClose={() => setIsLoginModalOpen(false)}
-        onSuccess={handleLoginSuccess}
-      />
+      {isLoginModalOpen && (
+        <LoginModal 
+          isOpen={isLoginModalOpen} 
+          onClose={() => setIsLoginModalOpen(false)}
+          onSuccess={handleLoginSuccess}
+          initialName={name}
+          initialPhone={phone}
+        />
+      )}
 
     </section>
   )

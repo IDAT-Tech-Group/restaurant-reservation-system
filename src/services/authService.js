@@ -23,3 +23,16 @@ export const login = async (credentials) => {
 export const logout = async () => {
   return await fetchApi('/logout', { method: 'POST' });
 };
+
+export const register = async (payload) => {
+  // El backend requiere 'username' en lugar de 'email'
+  const backendPayload = {
+    ...payload,
+    username: payload.email || payload.username,
+  }
+  
+  return await fetchApi('/register', {
+    method: 'POST',
+    body: JSON.stringify(backendPayload)
+  });
+};

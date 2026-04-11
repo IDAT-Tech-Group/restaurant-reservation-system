@@ -1,30 +1,27 @@
-import { useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useReservations } from '../context/ReservationsContext'
+import { getReservations } from '../services/reservationsService'
 import { ZONES } from '../constants/reservations'
 import { Link } from 'react-router-dom'
 
 export default function MyReservations() {
   const { user } = useAuth()
-  const { reservations, updateReservationStatus } = useReservations()
+  const { updateReservationStatus } = useReservations()
+  const [myReservations, setMyReservations] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const myReservations = useMemo(() => {
-    if (!user) return []
-    // Filter reservations by user's email, name, or phone (for backward compatibility with older bookings)
-    const userEmail = user.username.toLowerCase()
-    const userName = (user.name || '').toLowerCase()
-    const userPhone = (user.phone || '').replace(/\D/g, '')
-
-    return reservations
-      .filter(r => {
-        const matchesEmail = r.email && r.email.toLowerCase() === userEmail
-        const matchesName = r.name && r.name.toLowerCase() === userName
-        const matchPhone = r.phone && r.phone.replace(/\D/g, '') === userPhone
-        
-        return matchesEmail || matchesName || matchPhone
+  useEffect(() => {
+    if (!user) { setLoading(false); return }
+    getReservations()
+      .then(data => {
+        const sorted = (Array.isArray(data) ? data : [])
+          .sort((a, b) => new Date(`${a.date}T${a.startTime || '00:00'}`) - new Date(`${b.date}T${b.startTime || '00:00'}`))
+        setMyReservations(sorted)
       })
-      .sort((a, b) => new Date(`${a.date}T${a.startTime || a.time || '00:00'}`) - new Date(`${b.date}T${b.startTime || b.time || '00:00'}`))
-  }, [reservations, user])
+      .catch(() => setMyReservations([]))
+      .finally(() => setLoading(false))
+  }, [user?.id])
 
   const upcomingReservations = myReservations.filter(r => new Date(`${r.date}T${r.startTime || r.time || '00:00'}`) >= new Date())
   const pastReservations = myReservations.filter(r => new Date(`${r.date}T${r.startTime || r.time || '00:00'}`) < new Date())
