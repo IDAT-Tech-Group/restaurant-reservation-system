@@ -1,3 +1,13 @@
+/**
+ * PÁGINA: MIS RESERVAS
+ * Muestra al usuario autenticado sus reservas personales obtenidas directamente
+ * del API de Laravel. El backend filtra automáticamente por user_id gracias
+ * al token Bearer, por lo que no se necesita filtrar en el frontend.
+ *
+ * Las reservas se dividen en dos secciones:
+ * - Próximas: fecha/hora >= ahora
+ * - Historial pasado: fecha/hora < ahora
+ */
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useReservations } from '../context/ReservationsContext'
@@ -7,22 +17,28 @@ import { Link } from 'react-router-dom'
 
 export default function MyReservations() {
   const { user } = useAuth()
+  // Solo se usa updateReservationStatus del contexto global (para el botón de pago)
   const { updateReservationStatus } = useReservations()
   const [myReservations, setMyReservations] = useState([])
   const [loading, setLoading] = useState(true)
 
+  // Cargar las reservas del usuario al montar la página o al cambiar de usuario.
+  // Se hace un fetch propio en lugar de usar el estado global del contexto
+  // para garantizar datos frescos con el token ya disponible en localStorage.
   useEffect(() => {
     if (!user) { setLoading(false); return }
     getReservations()
       .then(data => {
+        // Ordenar de más próxima a más lejana
         const sorted = (Array.isArray(data) ? data : [])
           .sort((a, b) => new Date(`${a.date}T${a.startTime || '00:00'}`) - new Date(`${b.date}T${b.startTime || '00:00'}`))
         setMyReservations(sorted)
       })
       .catch(() => setMyReservations([]))
       .finally(() => setLoading(false))
-  }, [user?.id])
+  }, [user?.id])  // Se re-ejecuta si cambia el usuario autenticado
 
+  // Separar reservas en próximas (>= ahora) y pasadas (< ahora) para mostrar en secciones distintas
   const upcomingReservations = myReservations.filter(r => new Date(`${r.date}T${r.startTime || r.time || '00:00'}`) >= new Date())
   const pastReservations = myReservations.filter(r => new Date(`${r.date}T${r.startTime || r.time || '00:00'}`) < new Date())
 
@@ -39,9 +55,17 @@ export default function MyReservations() {
     )
   }
 
+  /**
+   * Renderiza una tarjeta individual de reserva.
+   * Muestra fecha, hora, zona, mesa, personas, estado y (si aplica) el botón de pago.
+   *
+   * @param {object} res - Objeto reserva normalizado
+   */
   const renderReservationCard = (res) => {
+    // Usar mediodía para evitar problemas de zona horaria al formatear la fecha
     const d = new Date(`${res.date}T12:00:00`)
     const dateStr = d.toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+    // Buscar el nombre de la zona por ID (los IDs vienen normalizados desde el servicio)
     const zoneName = ZONES.find(z => z.id === res.zone)?.name || 'General'
 
     return (
