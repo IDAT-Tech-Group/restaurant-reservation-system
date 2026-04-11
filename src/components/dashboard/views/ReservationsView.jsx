@@ -18,13 +18,25 @@ export default function ReservationsView() {
   const [dateFilter,  setDateFilter]  = useState('')
 
   const filtered = useMemo(() =>
-    reservations.filter(r => {
-      const cName = r.user?.name || r.name || '';
-      const cPhone = r.user?.phone || r.phone || '';
-      const matchSearch = cName.toLowerCase().includes(searchTerm.toLowerCase()) || cPhone.includes(searchTerm)
-      const matchDate   = !dateFilter || r.date === dateFilter
-      return matchSearch && matchDate
-    })
+    reservations
+      .filter(r => {
+        const cName = r.user?.name || r.name || '';
+        const cPhone = r.user?.phone || r.phone || '';
+        const matchSearch = cName.toLowerCase().includes(searchTerm.toLowerCase()) || cPhone.includes(searchTerm)
+        const matchDate   = !dateFilter || r.date === dateFilter
+        return matchSearch && matchDate
+      })
+      .sort((a, b) => {
+        const now = new Date()
+        const dtA = new Date(`${a.date}T${a.startTime || a.start_time || '00:00'}`)
+        const dtB = new Date(`${b.date}T${b.startTime || b.start_time || '00:00'}`)
+        const aFuture = dtA >= now
+        const bFuture = dtB >= now
+        if (aFuture && !bFuture) return -1  // a es futura, va primero
+        if (!aFuture && bFuture) return 1   // b es futura, va primero
+        if (aFuture && bFuture) return dtA - dtB   // ambas futuras: más próxima primero
+        return dtB - dtA                           // ambas pasadas: más reciente primero
+      })
   , [reservations, searchTerm, dateFilter])
 
   const STATUS_STYLES = {

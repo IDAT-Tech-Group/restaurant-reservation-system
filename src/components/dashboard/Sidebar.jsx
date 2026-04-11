@@ -4,6 +4,7 @@ const NAV_ITEMS = [
   { id: 'dashboard',    icon: '📊', label: 'Dashboard' },
   { id: 'calendar',     icon: '📅', label: 'Calendario' },
   { id: 'reservations', icon: '📋', label: 'Reservas' },
+  { id: 'tables',       icon: '🪑', label: 'Mesas' },
   { id: 'dishes',       icon: '🍽️', label: 'Menú y Carta' },
 ]
 const SETTINGS_ITEMS = [

@@ -119,6 +119,7 @@ export function ReservationsProvider({ children }) {
       tables,
       zones,
       isLoading,
+      fetchData,
       addReservation, 
       releaseTable, 
       getAvailableTables, 

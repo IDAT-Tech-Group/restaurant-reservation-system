@@ -7,11 +7,13 @@ import CalendarView from '../components/dashboard/views/CalendarView.jsx'
 import ReservationsView from '../components/dashboard/views/ReservationsView.jsx'
 import SettingsView from '../components/dashboard/views/SettingsView.jsx'
 import DishesView from '../components/dashboard/views/DishesView.jsx'
+import TablesView from '../components/dashboard/views/TablesView.jsx'
 
 const VIEWS = {
   dashboard:    DashboardView,
   calendar:     CalendarView,
   reservations: ReservationsView,
+  tables:       TablesView,
   dishes:       DishesView,
   settings:     SettingsView,
 }

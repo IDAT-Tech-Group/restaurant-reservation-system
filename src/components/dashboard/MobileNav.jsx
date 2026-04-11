@@ -4,6 +4,7 @@ const ITEMS = [
   { id: 'dashboard',    icon: '📊', label: 'Inicio' },
   { id: 'calendar',     icon: '📅', label: 'Calendario' },
   { id: 'reservations', icon: '📋', label: 'Reservas' },
+  { id: 'tables',       icon: '🪑', label: 'Mesas' },
   { id: 'dishes',       icon: '🍽️', label: 'Menú' },
   { id: 'settings',     icon: '⚙️', label: 'Config.' },
 ]
