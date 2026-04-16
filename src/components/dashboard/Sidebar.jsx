@@ -2,6 +2,7 @@ import { cx } from '../../lib/cx.js'
 
 const NAV_ITEMS = [
   { id: 'dashboard',    icon: '📊', label: 'Dashboard' },
+  { id: 'reports',      icon: '📈', label: 'Reportes' },
   { id: 'calendar',     icon: '📅', label: 'Calendario' },
   { id: 'reservations', icon: '📋', label: 'Reservas' },
   { id: 'tables',       icon: '🪑', label: 'Mesas' },

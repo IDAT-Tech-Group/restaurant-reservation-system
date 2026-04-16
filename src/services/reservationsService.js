@@ -92,3 +92,13 @@ export const createReservation = async (data) => {
 export const deleteReservation = async (id) => {
   return await fetchApi(`/reservas/${id}`, { method: 'DELETE' });
 };
+
+/**
+ * Consulta la disponibilidad de mesas ocupadas globalmente (público)
+ * para un día específico o general.
+ */
+export const getDisponibilidad = async (date) => {
+  const url = date ? `/disponibilidad?date=${date}` : '/disponibilidad';
+  const data = await fetchApi(url);
+  return Array.isArray(data) ? data.map(normalizeReservation) : data;
+};

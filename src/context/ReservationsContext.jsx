@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import { isOverlapping } from '../lib/timeUtils.js'
-import { getReservations, createReservation, deleteReservation } from '../services/reservationsService.js'
+import { getReservations, createReservation, deleteReservation, getDisponibilidad } from '../services/reservationsService.js'
 import { fetchApi } from '../services/api.js'
 import { useAuth } from './AuthContext.jsx'
 
@@ -19,6 +19,7 @@ export function ReservationsProvider({ children }) {
   const [reservations, setReservations] = useState([])  // Lista de reservas del usuario (o todas si admin)
   const [tables, setTables]             = useState([])  // Lista de mesas disponibles
   const [zones, setZones]               = useState([])  // Lista de zonas del restaurante
+  const [occupiedSlots, setOccupiedSlots] = useState([])  // Reservas globales de todos los usuarios
   const [isLoading, setIsLoading]       = useState(true) // Indicador de carga inicial
 
   /**
@@ -30,13 +31,15 @@ export function ReservationsProvider({ children }) {
   const fetchData = useCallback(async () => {
     try {
       setIsLoading(true)
-      // Lanzar ambas peticiones en paralelo; si alguna falla, devuelve array vacío
-      const [resData, mesasData] = await Promise.all([
+      // Lanzar las peticiones en paralelo; si alguna falla, devuelve array vacío
+      const [resData, mesasData, dispData] = await Promise.all([
         getReservations().catch(() => []),
-        fetchApi('/mesas').catch(() => [])
+        fetchApi('/mesas').catch(() => []),
+        getDisponibilidad().catch(() => [])
       ])
       
       setReservations(resData)
+      setOccupiedSlots(dispData)
 
       // Laravel devuelve mesas con la zona anidada: { id, number, capacity, zone: { id, name, icon } }
       if (Array.isArray(mesasData)) {
@@ -153,7 +156,7 @@ export function ReservationsProvider({ children }) {
     }
 
     // Encontrar reservas que se solapan en la misma fecha y horario
-    const conflictingReservations = reservations.filter(r => {
+    const conflictingReservations = occupiedSlots.filter(r => {
       if (r.date !== date) return false
       return isOverlapping(startTime, endTime, r.startTime || r.start_time, r.endTime || r.end_time)
     })
@@ -162,16 +165,28 @@ export function ReservationsProvider({ children }) {
     const occupiedTableIds = new Set(conflictingReservations.map(r => Number(r.table_id || r.table)))
 
     // Retornar solo las mesas que no están ocupadas
-    return candidateTables.filter(t => !occupiedTableIds.has(t.id))
-  }, [reservations, tables])
+    return candidateTables.filter(t => !occupiedTableIds.has(Number(t.id)))
+  }, [occupiedSlots, tables])
+
+  /**
+   * Refresca la disponibilidad global (útil para validar justo antes o mientras se navega)
+   */
+  const refreshDisponibilidad = useCallback(async () => {
+    try {
+      const dispData = await getDisponibilidad()
+      setOccupiedSlots(dispData)
+    } catch {}
+  }, [])
 
   return (
     <ReservationsContext.Provider value={{
       reservations, 
       tables,
       zones,
+      occupiedSlots,
       isLoading,
       fetchData,
+      refreshDisponibilidad,
       addReservation, 
       releaseTable, 
       getAvailableTables, 
@@ -186,7 +201,7 @@ export function ReservationsProvider({ children }) {
  * Hook personalizado para consumir el ReservationsContext.
  * Lanza un error descriptivo si se usa fuera del provider.
  *
- * @returns {{ reservations, tables, zones, isLoading, fetchData,
+ * @returns {{ reservations, tables, zones, occupiedSlots, isLoading, fetchData, refreshDisponibilidad,
  *             addReservation, releaseTable, getAvailableTables, updateReservationStatus }}
  */
 export function useReservations() {

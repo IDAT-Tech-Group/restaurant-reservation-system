@@ -8,9 +8,11 @@ import ReservationsView from '../components/dashboard/views/ReservationsView.jsx
 import SettingsView from '../components/dashboard/views/SettingsView.jsx'
 import DishesView from '../components/dashboard/views/DishesView.jsx'
 import TablesView from '../components/dashboard/views/TablesView.jsx'
+import ReportsView from '../components/dashboard/views/ReportsView.jsx'
 
 const VIEWS = {
   dashboard:    DashboardView,
+  reports:      ReportsView,
   calendar:     CalendarView,
   reservations: ReservationsView,
   tables:       TablesView,

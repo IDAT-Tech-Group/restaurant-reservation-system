@@ -29,12 +29,18 @@ export default function ReservationFormUI({
 }) {
 
   const { user } = useAuth()   // ✅ ahora sí existe user
-  const { getAvailableTables, zones: ZONES } = useReservations()
+  const { getAvailableTables, zones: ZONES, refreshDisponibilidad } = useReservations()
 
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [date, setDate] = useState(TODAY_ISO)
   const [zone, setZone] = useState('')
+
+  React.useEffect(() => {
+    if (date && typeof refreshDisponibilidad === 'function') {
+      refreshDisponibilidad()
+    }
+  }, [date, refreshDisponibilidad])
 
   React.useEffect(() => {
     if (ZONES && ZONES.length > 0 && !zone) {
@@ -74,7 +80,7 @@ export default function ReservationFormUI({
     const result = await onSubmit({
       name,
       phone,
-      email: user.username,
+      email: user?.username || '',
       date,
       zone, 
       endTime, // Se usará en el context para cruces
